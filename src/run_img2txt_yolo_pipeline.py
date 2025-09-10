@@ -137,6 +137,11 @@ def get_layout_predictions(layout_session, label_map_layout, ca_img, layout_outp
     elif backend == 'yolov8':
         layout_predictions = non_max_supression_yolov8(layout_predictions, conf_thres = 0.01, iou_thres=0.1, max_det=2000, agnostic = True)[0]
     
+    # Sort by x1, then y1, to process articles in column order (left-to-right, then top-to-bottom).
+    if layout_predictions.size()[0] > 0:
+        sorted_indices = np.lexsort((layout_predictions[:, 1].cpu().numpy(), layout_predictions[:, 0].cpu().numpy()))
+        layout_predictions = layout_predictions[sorted_indices]
+
     layout_bboxes, layout_probs, layout_labels = layout_predictions[:, :4], layout_predictions[:, -2], layout_predictions[:, -1]
 
     crops_for_effocr = []
